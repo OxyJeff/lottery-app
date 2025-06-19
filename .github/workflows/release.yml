@@ -3,15 +3,16 @@ name: Release Tauri App
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+' # 仅在创建 vX.X.X 格式的 tag 时触发
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
 permissions:
   contents: write
-  
+
 jobs:
   create-release:
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      id: ${{ steps.create_release.outputs.id }} # <--【修改点 1】确保输出 Release ID
     steps:
       - name: Create Release
         id: create_release
@@ -29,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
+        platform: [macos-latest, windows-latest] # <--【修改点 2】只保留 macos 和 windows
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -39,9 +40,8 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18 # 根据你的项目选择合适的 Node.js 版本
+          node-version: 18
 
-      # 根据你的包管理器选择，这里以 pnpm 为例
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -51,7 +51,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      # 在 Windows 上需要安装 WebView2
+      # 在 Windows 上需要安装 WebView2 (Rust target)
       - name: Install dependencies (Windows)
         if: matrix.platform == 'windows-latest'
         run: |
@@ -62,5 +62,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          releaseId: ${{ needs.create-release.outputs.id }}
-          
+          releaseId: ${{ needs.create-release.outputs.id }} # <-- 现在这里可以正确获取到 ID 了
