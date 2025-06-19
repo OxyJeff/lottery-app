@@ -1,0 +1,7 @@
+
+{
+  "name": "抽奖系统",
+  "description": "一个用于管理抽奖活动参与者并抽取中奖者的Web应用程序。用户可以手动输入参与者，或上传Excel文件，设置中奖人数，然后开始抽奖。",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
