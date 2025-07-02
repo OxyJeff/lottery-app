@@ -2,8 +2,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import SettingsPage from './components/SettingsPage';
 import LotteryPage from './components/LotteryPage';
-import Modal from './components/Modal';
-import WinnerDisplay from './components/WinnerDisplay';
+import type { Prize, Draw } from './types';
+// Modal and WinnerDisplay will be removed
 import { SparklesIcon } from './components/icons';
 
 export type PageView = 'settings' | 'lottery';
@@ -18,13 +18,52 @@ const App: React.FC = () => {
   const [appSubtitle, setAppSubtitle] = useState<string>('公平公正，好运连连！'); // New state for app subtitle
   const [rollingSpeed, setRollingSpeed] = useState<RollingSpeed>('medium'); // New state for rolling speed
   
-  const [winners, setWinners] = useState<string[]>([]);
+  // const [winners, setWinners] = useState<string[]>([]); // To be removed
   const [error, setError] = useState<string | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
-  const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false);
+  // const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false); // To be removed
+
+  const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [drawHistory, setDrawHistory] = useState<Draw[]>([]);
+  const [selectedPrizeId, setSelectedPrizeId] = useState<string | null>(null);
 
   const actualParticipants = participantsText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
   
+  // Filter participants for the current draw & determine selected prize
+  const allPastWinners = new Set<string>(drawHistory.flatMap(draw => draw.winners));
+  const participantsForCurrentDraw = actualParticipants.filter(
+    participant => !allPastWinners.has(participant)
+  );
+  const selectedPrize = selectedPrizeId ? prizes.find(p => p.id === selectedPrizeId) || null : null;
+
+  const handleAddPrize = useCallback((prizeData: Omit<Prize, 'id'>) => {
+    setPrizes(prevPrizes => [
+      ...prevPrizes,
+      { ...prizeData, id: Date.now().toString(), imageUrl: prizeData.imageUrl || undefined }
+    ]);
+  }, []);
+
+  const handleDeletePrize = useCallback((prizeId: string) => {
+    setPrizes(prevPrizes => prevPrizes.filter(prize => prize.id !== prizeId));
+  }, []);
+
+  const handleWinnersDrawn = useCallback((drawnWinners: string[]) => {
+    if (!selectedPrize) {
+      setError("无法记录抽奖结果：未选择奖品。");
+      return;
+    }
+    const newDrawEntry: Draw = {
+      id: Date.now().toString(),
+      prizeName: selectedPrize.name,
+      prizeImageUrl: selectedPrize.imageUrl,
+      winners: drawnWinners,
+      timestamp: new Date(),
+    };
+    setDrawHistory(prevHistory => [...prevHistory, newDrawEntry]);
+    setSelectedPrizeId(null); // Clear selected prize
+    // setError(null); // Potentially clear any previous errors after successful draw
+  }, [selectedPrize, setError, setDrawHistory, setSelectedPrizeId]);
+
   const handleFileUpload = useCallback((newParticipants: string[]) => {
     setParticipantsText(prevText => {
       const existingNames = prevText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
@@ -44,29 +83,44 @@ const App: React.FC = () => {
   }, []);
   
   useEffect(() => {
-    const numParticipants = actualParticipants.length;
-    if (numParticipants > 0) {
-      if (numberOfWinnersToSelect > numParticipants) {
-        setNumberOfWinnersToSelect(numParticipants);
+    // Adjust numberOfWinnersToSelect based on participantsForCurrentDraw
+    const numAvailableParticipants = participantsForCurrentDraw.length;
+    if (numAvailableParticipants > 0) {
+      if (numberOfWinnersToSelect > numAvailableParticipants) {
+        setNumberOfWinnersToSelect(numAvailableParticipants);
       } else if (numberOfWinnersToSelect <= 0) {
         setNumberOfWinnersToSelect(1);
       }
     } else {
+      // If no one is available (e.g. all won, or no initial participants), default to 1,
+      // navigateToLottery checks will prevent actual drawing if 0 available.
       setNumberOfWinnersToSelect(1);
     }
-  }, [participantsText, numberOfWinnersToSelect, actualParticipants.length]);
+  }, [participantsText, numberOfWinnersToSelect, participantsForCurrentDraw.length, drawHistory]); // Added drawHistory as it affects participantsForCurrentDraw
 
   const navigateToLottery = () => {
     if (actualParticipants.length === 0) {
       setError("请先添加参与者名单。");
       return;
     }
-    if (numberOfWinnersToSelect <=0) {
+    if (prizes.length > 0 && !selectedPrizeId) {
+      setError("请选择一个奖品进行抽奖。");
+      return;
+    }
+    if (actualParticipants.length > 0 && participantsForCurrentDraw.length === 0) {
+      setError("所有参与者都已中奖！无法开始新的抽奖。");
+      return;
+    }
+    if (participantsForCurrentDraw.length === 0) {
+        setError("没有可参与抽奖的成员。");
+        return;
+    }
+    if (numberOfWinnersToSelect <= 0) {
         setError("中奖人数必须至少为1。");
         return;
     }
-    if (numberOfWinnersToSelect > actualParticipants.length) {
-      setError(`中奖人数 (${numberOfWinnersToSelect}) 不能超过参与者总数 (${actualParticipants.length})。`);
+    if (numberOfWinnersToSelect > participantsForCurrentDraw.length) {
+      setError(`中奖人数 (${numberOfWinnersToSelect}) 不能超过当前可抽奖人数 (${participantsForCurrentDraw.length})。`);
       return;
     }
     setError(null);
@@ -75,8 +129,8 @@ const App: React.FC = () => {
 
   const navigateToSettings = () => {
     setCurrentPage('settings');
-    setWinners([]);
-    setShowWinnerModal(false);
+    // setWinners([]); // Removed
+    // setShowWinnerModal(false); // Removed
   };
 
   return (
@@ -108,28 +162,34 @@ const App: React.FC = () => {
               backgroundImageUrl={backgroundImageUrl}
               onBackgroundImageChange={setBackgroundImageUrl}
               navigateToLottery={navigateToLottery}
-              maxWinners={actualParticipants.length}
+              maxWinners={participantsForCurrentDraw.length} // Use filtered list for maxWinners display in settings
               setLoading={setIsLoadingFile}
               setError={setError}
+              prizes={prizes}
+              onAddPrize={handleAddPrize}
+              onDeletePrize={handleDeletePrize}
+              selectedPrizeId={selectedPrizeId}
+              onSelectedPrizeIdChange={setSelectedPrizeId}
+              availablePrizes={prizes}
+              drawHistory={drawHistory}
             />
           </main>
         )}
-        {currentPage === 'lottery' && (
+        {currentPage === 'lottery' && selectedPrize && ( // Ensure selectedPrize is not null before rendering LotteryPage
           <LotteryPage
-            participants={actualParticipants}
+            participants={participantsForCurrentDraw}
             numberOfWinnersToSelect={numberOfWinnersToSelect}
             rollingSpeed={rollingSpeed}
             backgroundImageUrl={backgroundImageUrl}
             navigateToSettings={navigateToSettings}
-            onWinnersDrawn={(drawnWinners) => {
-              setWinners(drawnWinners);
-              // setShowWinnerModal(true); // Modal will no longer be shown
-            }}
+            onWinnersDrawn={handleWinnersDrawn}
             setErrorApp={setError}
+            selectedPrize={selectedPrize}
           />
         )}
       </div>
 
+      {/* Error display remains, but Modal and WinnerDisplay are removed */}
       {(error && currentPage === 'settings') || isLoadingFile ? (
         <div className="fixed bottom-4 right-4 max-w-sm w-full z-50">
             {isLoadingFile && (
@@ -147,11 +207,8 @@ const App: React.FC = () => {
             )}
         </div>
       ) : null}
-
-      <Modal isOpen={showWinnerModal && currentPage === 'lottery'} onClose={() => setShowWinnerModal(false)} title="🎉 恭喜中奖者！🎉">
-        <WinnerDisplay winners={winners} />
-      </Modal>
       
+      {/* Modal and WinnerDisplay removed from here */}
       <footer className="text-center py-6 border-t border-gray-700 bg-gray-800">
         <p className="text-sm text-gray-500">{appTitle} &copy; {new Date().getFullYear()}</p>
       </footer>

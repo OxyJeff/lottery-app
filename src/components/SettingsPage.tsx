@@ -1,9 +1,11 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ParticipantInputArea from './ParticipantInputArea';
 import FileUpload from './FileUpload';
-import { CogIcon, UsersIcon, PhotoIcon } from './icons';
+import { CogIcon, UsersIcon, PhotoIcon, TrophyIcon } from './icons';
 import type { RollingSpeed } from '../App';
+import type { Prize, Draw } from '../types'; // Added Draw
+import DrawHistoryDisplay from './DrawHistoryDisplay'; // Added DrawHistoryDisplay
 
 interface SettingsPageProps {
   appTitle: string;
@@ -23,6 +25,13 @@ interface SettingsPageProps {
   maxWinners: number;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  prizes: Prize[];
+  onAddPrize: (prize: Omit<Prize, 'id'>) => void;
+  onDeletePrize: (prizeId: string) => void;
+  selectedPrizeId: string | null;
+  onSelectedPrizeIdChange: (prizeId: string | null) => void;
+  availablePrizes: Prize[];
+  drawHistory: Draw[]; // Added drawHistory
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -42,9 +51,30 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   navigateToLottery,
   maxWinners,
   setLoading,
-  setError
+  setError,
+  prizes, // This is the same as availablePrizes, kept for consistency with previous step if used directly
+  onAddPrize,
+  onDeletePrize,
+  selectedPrizeId,
+  onSelectedPrizeIdChange,
+  availablePrizes,
+  drawHistory, // Added drawHistory
 }) => {
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
+  const [prizeName, setPrizeName] = useState('');
+  const [prizeImageUrl, setPrizeImageUrl] = useState('');
+  const [showHistory, setShowHistory] = useState<boolean>(false); // Added showHistory state
+
+  const handleAddPrizeInternal = () => {
+    if (!prizeName.trim()) {
+      setError("奖品名称不能为空。");
+      return;
+    }
+    onAddPrize({ name: prizeName.trim(), imageUrl: prizeImageUrl.trim() || undefined });
+    setPrizeName('');
+    setPrizeImageUrl('');
+    setError(null); // Clear error
+  };
 
   const handleNumberOfWinnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let num = parseInt(e.target.value, 10);
@@ -218,12 +248,136 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         </div>
       </section>
 
+      <section aria-labelledby="prize-settings-heading">
+        <h2 id="prize-settings-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+          <TrophyIcon className="w-7 h-7 mr-2" />
+          奖品设置
+        </h2>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl space-y-6">
+          <div>
+            <label htmlFor="prizeName" className="block text-sm font-medium text-gray-300 mb-1">
+              奖品名称
+            </label>
+            <input
+              type="text"
+              id="prizeName"
+              value={prizeName}
+              onChange={(e) => setPrizeName(e.target.value)}
+              placeholder="例如：一等奖"
+              className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label htmlFor="prizeImageUrl" className="block text-sm font-medium text-gray-300 mb-1">
+              奖品图片URL (可选)
+            </label>
+            <input
+              type="text"
+              id="prizeImageUrl"
+              value={prizeImageUrl}
+              onChange={(e) => setPrizeImageUrl(e.target.value)}
+              placeholder="例如：https://example.com/image.png"
+              className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+            />
+          </div>
+          <button
+            onClick={handleAddPrizeInternal}
+            disabled={!prizeName.trim()}
+            className={`w-full font-semibold py-3 px-6 rounded-lg shadow-md transition-colors text-white
+              ${!prizeName.trim() ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800'}`}
+          >
+            添加奖品
+          </button>
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-medium text-gray-300 mb-2">已添加奖品列表</h3>
+          {prizes.length === 0 ? (
+            <p className="text-gray-400">暂无奖品，请通过上方表单添加。</p>
+          ) : (
+            <ul className="space-y-3">
+              {prizes.map((prize) => (
+                <li key={prize.id} className="bg-gray-700 p-4 rounded-lg shadow flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-gray-100">{prize.name}</p>
+                    {prize.imageUrl && (
+                      <a href={prize.imageUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:text-sky-300 break-all">
+                        {prize.imageUrl}
+                      </a>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onDeletePrize(prize.id)}
+                    className="text-red-400 hover:text-red-300 font-medium py-1 px-3 rounded hover:bg-gray-600 transition-colors"
+                    aria-label={`删除奖品 ${prize.name}`}
+                  >
+                    删除
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {availablePrizes && availablePrizes.length > 0 && (
+        <section aria-labelledby="prize-selection-heading" className="mt-8">
+          <h2 id="prize-selection-heading" className="text-xl font-semibold mb-3 text-sky-400">
+            选择当前抽奖奖品
+          </h2>
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+            <label htmlFor="currentPrize" className="block text-sm font-medium text-gray-300 mb-1">
+              当前奖品
+            </label>
+            <select
+              id="currentPrize"
+              value={selectedPrizeId || ''}
+              onChange={(e) => onSelectedPrizeIdChange(e.target.value || null)}
+              className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+            >
+              <option value="">-- 请选择一个奖品 --</option>
+              {availablePrizes.map(prize => (
+                <option key={prize.id} value={prize.id}>
+                  {prize.name}
+                </option>
+              ))}
+            </select>
+            {!selectedPrizeId && <p className="text-xs text-red-400 mt-1">开始抽奖前必须选择一个奖品。</p>}
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="draw-history-heading">
+        <h2 id="draw-history-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          抽奖历史记录
+        </h2>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="w-full sm:w-auto font-semibold py-2 px-4 rounded-lg shadow-md transition-colors text-white bg-indigo-500 hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 mb-4"
+          >
+            {showHistory ? '隐藏抽奖历史' : '查看抽奖历史'} ({drawHistory.length} 条记录)
+          </button>
+          {showHistory && <DrawHistoryDisplay drawHistory={drawHistory} />}
+        </div>
+      </section>
+
       <div className="mt-10 text-center">
         <button
           onClick={navigateToLottery}
-          disabled={maxWinners === 0 || numberOfWinners > maxWinners || numberOfWinners < 1}
+          disabled={
+            maxWinners === 0 ||
+            numberOfWinners > maxWinners ||
+            numberOfWinners < 1 ||
+            (availablePrizes.length > 0 && !selectedPrizeId)
+          }
           className={`w-full md:w-auto font-semibold py-3 px-8 rounded-lg shadow-md transition-all duration-150 ease-in-out text-white text-lg
-            ${(maxWinners === 0 || numberOfWinners > maxWinners || numberOfWinners < 1)
+            ${( maxWinners === 0 ||
+                numberOfWinners > maxWinners ||
+                numberOfWinners < 1 ||
+                (availablePrizes.length > 0 && !selectedPrizeId)
+              )
               ? 'bg-gray-600 cursor-not-allowed'
               : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 transform hover:scale-105'}`}
         >

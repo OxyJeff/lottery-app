@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { RollingSpeed } from '../App';
 import { SparklesIcon } from './icons';
+import type { Prize } from '../types'; // Added import for Prize
 
 interface LotteryPageProps {
   participants: string[];
@@ -11,6 +12,7 @@ interface LotteryPageProps {
   navigateToSettings: () => void;
   onWinnersDrawn: (winners: string[]) => void;
   setErrorApp: (error: string | null) => void;
+  selectedPrize: Prize | null; // Added
 }
 
 const StopIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -39,7 +41,8 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
   backgroundImageUrl,
   navigateToSettings,
   // onWinnersDrawn,
-  setErrorApp
+  setErrorApp,
+  selectedPrize // Added
 }) => {
   const [isRolling, setIsRolling] = useState<boolean>(false);
   const [currentRollingName, setCurrentRollingName] = useState<string[]>([]);
@@ -166,8 +169,26 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
         返回设置
       </button>
 
+      {/* --- New Prize Display Section --- */}
+      {selectedPrize && (
+        <div className="absolute top-4 right-4 bg-gray-700 bg-opacity-70 p-3 rounded-lg shadow-md text-center z-10 max-w-xs">
+          <h3 className="text-lg font-semibold text-yellow-300 mb-1 truncate" title={selectedPrize.name}>{selectedPrize.name}</h3>
+          {selectedPrize.imageUrl && (
+            <img
+              src={selectedPrize.imageUrl}
+              alt={`Image for ${selectedPrize.name}`}
+              className="max-h-24 object-contain rounded mt-1 mx-auto"
+            />
+          )}
+          {!selectedPrize.imageUrl && (
+              <p className="text-xs text-gray-400 mt-1">(奖品无图片)</p>
+          )}
+        </div>
+      )}
+      {/* --- End New Prize Display Section --- */}
+
       <div className="text-center z-0">
-        <p className="text-xl md:text-2xl mb-6 text-gray-300 bg-black bg-opacity-30 px-3 py-1 rounded">
+        <p className="text-xl md:text-2xl my-6 text-gray-300 bg-black bg-opacity-30 px-3 py-1 rounded"> {/* Adjusted margin from mb-6 to my-6 for balance */}
           当前总参与人数: {participantCount}名 | 抽取人数: {numberOfWinnersToSelect}名
         </p>
 
