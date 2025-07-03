@@ -1,4 +1,3 @@
-import React from 'react';
 import React, { useState } from 'react';
 import type { Draw } from '../types';
 import { TrophyIcon, PencilIcon, CheckIcon, XMarkIcon } from './icons'; // Added icons

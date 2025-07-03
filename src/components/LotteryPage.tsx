@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { RollingSpeed } from '../App';
 import { SparklesIcon } from './icons';
-import type { Prize } from '../types'; // Added import for Prize
+import type { Prize, Draw } from '../types'; // Added import for Prize and Draw
 
 interface LotteryPageProps {
   participants: string[];
