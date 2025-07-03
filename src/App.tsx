@@ -15,13 +15,12 @@ const App: React.FC = () => {
   const [numberOfWinnersToSelect, setNumberOfWinnersToSelect] = useState<number>(1);
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(null);
   const [appTitle, setAppTitle] = useState<string>('抽奖系统');
-  const [appSubtitle, setAppSubtitle] = useState<string>('公平公正，好运连连！'); // New state for app subtitle
-  const [rollingSpeed, setRollingSpeed] = useState<RollingSpeed>('medium'); // New state for rolling speed
+  const [appSubtitle, setAppSubtitle] = useState<string>('公平公正，好运连连！');
+  const [rollingSpeed, setRollingSpeed] = useState<RollingSpeed>('medium');
+  const [excludeWinners, setExcludeWinners] = useState<boolean>(false); // New state for excluding winners
   
-  // const [winners, setWinners] = useState<string[]>([]); // To be removed
   const [error, setError] = useState<string | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
-  // const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false); // To be removed
 
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [drawHistory, setDrawHistory] = useState<Draw[]>([]);
@@ -29,11 +28,15 @@ const App: React.FC = () => {
 
   const actualParticipants = participantsText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
   
-  // Filter participants for the current draw & determine selected prize
-  const allPastWinners = new Set<string>(drawHistory.flatMap(draw => draw.winners));
-  const participantsForCurrentDraw = actualParticipants.filter(
-    participant => !allPastWinners.has(participant)
-  );
+  const getParticipantsForCurrentDraw = useCallback(() => {
+    if (!excludeWinners) {
+      return actualParticipants;
+    }
+    const allPastWinnersSet = new Set<string>(drawHistory.flatMap(draw => draw.winners));
+    return actualParticipants.filter(participant => !allPastWinnersSet.has(participant));
+  }, [actualParticipants, drawHistory, excludeWinners]);
+
+  const participantsForCurrentDraw = getParticipantsForCurrentDraw();
   const selectedPrize = selectedPrizeId ? prizes.find(p => p.id === selectedPrizeId) || null : null;
 
   const handleAddPrize = useCallback((prizeData: Omit<Prize, 'id'>) => {
@@ -47,22 +50,20 @@ const App: React.FC = () => {
     setPrizes(prevPrizes => prevPrizes.filter(prize => prize.id !== prizeId));
   }, []);
 
-  const handleWinnersDrawn = useCallback((drawnWinners: string[]) => {
-    if (!selectedPrize) {
-      setError("无法记录抽奖结果：未选择奖品。");
-      return;
-    }
-    const newDrawEntry: Draw = {
-      id: Date.now().toString(),
-      prizeName: selectedPrize.name,
-      prizeImageUrl: selectedPrize.imageUrl,
-      winners: drawnWinners,
-      timestamp: new Date(),
-    };
-    setDrawHistory(prevHistory => [...prevHistory, newDrawEntry]);
-    setSelectedPrizeId(null); // Clear selected prize
-    // setError(null); // Potentially clear any previous errors after successful draw
-  }, [selectedPrize, setError, setDrawHistory, setSelectedPrizeId]);
+  const handleNewDrawRecorded = useCallback((newDraw: Draw) => {
+    setDrawHistory(prevHistory => [...prevHistory, newDraw]);
+    // Optionally, clear selected prize or perform other actions after a draw
+    // setSelectedPrizeId(null);
+    setError(null);
+  }, [setDrawHistory, setError]);
+
+  const handleEditDrawHistory = useCallback((drawId: string, updatedWinners: string[]) => {
+    setDrawHistory(prevHistory =>
+      prevHistory.map(draw =>
+        draw.id === drawId ? { ...draw, winners: updatedWinners, editable: true } : draw
+      )
+    );
+  }, [setDrawHistory]);
 
   const handleFileUpload = useCallback((newParticipants: string[]) => {
     setParticipantsText(prevText => {
@@ -107,12 +108,15 @@ const App: React.FC = () => {
       setError("请选择一个奖品进行抽奖。");
       return;
     }
-    if (actualParticipants.length > 0 && participantsForCurrentDraw.length === 0) {
+    // Use getParticipantsForCurrentDraw() to ensure fresh check based on current excludeWinners state
+    const currentAvailableForDraw = getParticipantsForCurrentDraw();
+
+    if (actualParticipants.length > 0 && currentAvailableForDraw.length === 0 && excludeWinners) {
       setError("所有参与者都已中奖！无法开始新的抽奖。");
       return;
     }
-    if (participantsForCurrentDraw.length === 0) {
-        setError("没有可参与抽奖的成员。");
+    if (currentAvailableForDraw.length === 0) {
+        setError("没有可参与抽奖的成员。" + (excludeWinners && actualParticipants.length > 0 ? " (可能所有人都已中奖)" : ""));
         return;
     }
     if (numberOfWinnersToSelect <= 0) {
@@ -172,19 +176,24 @@ const App: React.FC = () => {
               onSelectedPrizeIdChange={setSelectedPrizeId}
               availablePrizes={prizes}
               drawHistory={drawHistory}
+              excludeWinners={excludeWinners}
+              onExcludeWinnersChange={setExcludeWinners}
+              onEditDrawHistory={handleEditDrawHistory}
             />
           </main>
         )}
-        {currentPage === 'lottery' && selectedPrize && ( // Ensure selectedPrize is not null before rendering LotteryPage
+        {currentPage === 'lottery' && selectedPrize && (
           <LotteryPage
-            participants={participantsForCurrentDraw}
+            participants={actualParticipants} // Pass all participants
             numberOfWinnersToSelect={numberOfWinnersToSelect}
             rollingSpeed={rollingSpeed}
             backgroundImageUrl={backgroundImageUrl}
             navigateToSettings={navigateToSettings}
-            onWinnersDrawn={handleWinnersDrawn}
+            onWinnersDrawn={handleNewDrawRecorded} // Use the new handler
             setErrorApp={setError}
             selectedPrize={selectedPrize}
+            excludeWinners={excludeWinners} // Pass excludeWinners setting
+            allDrawHistory={drawHistory} // Pass all history for filtering
           />
         )}
       </div>

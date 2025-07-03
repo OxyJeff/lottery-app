@@ -32,6 +32,9 @@ interface SettingsPageProps {
   onSelectedPrizeIdChange: (prizeId: string | null) => void;
   availablePrizes: Prize[];
   drawHistory: Draw[]; // Added drawHistory
+  excludeWinners: boolean; // Added
+  onExcludeWinnersChange: (exclude: boolean) => void; // Added
+  onEditDrawHistory: (drawId: string, updatedWinners: string[]) => void; // Added
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -59,6 +62,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onSelectedPrizeIdChange,
   availablePrizes,
   drawHistory, // Added drawHistory
+  excludeWinners, // Added
+  onExcludeWinnersChange, // Added
+  onEditDrawHistory, // Added
 }) => {
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
   const [prizeName, setPrizeName] = useState('');
@@ -170,6 +176,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               aria-label="设置抽奖系统副标题"
             />
             <p className="text-xs text-gray-400 mt-1">自定义显示在主标题下方的小字描述。</p>
+          </div>
+
+          <div>
+            <label htmlFor="excludeWinners" className="flex items-center text-sm font-medium text-gray-300 mb-1">
+              <input
+                type="checkbox"
+                id="excludeWinners"
+                checked={excludeWinners}
+                onChange={(e) => onExcludeWinnersChange(e.target.checked)}
+                className="mr-2 h-4 w-4 text-sky-600 bg-gray-700 border-gray-600 rounded focus:ring-sky-500"
+              />
+              排除已中奖人员
+            </label>
+            <p className="text-xs text-gray-400 mt-1">开启后，在后续的抽奖中将自动排除已经中过奖的人员。</p>
           </div>
 
           <div>
@@ -359,7 +379,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           >
             {showHistory ? '隐藏抽奖历史' : '查看抽奖历史'} ({drawHistory.length} 条记录)
           </button>
-          {showHistory && <DrawHistoryDisplay drawHistory={drawHistory} />}
+          {showHistory && <DrawHistoryDisplay drawHistory={drawHistory} onEditDraw={onEditDrawHistory} />}
         </div>
       </section>
 

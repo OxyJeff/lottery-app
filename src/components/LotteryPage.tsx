@@ -10,9 +10,11 @@ interface LotteryPageProps {
   rollingSpeed: RollingSpeed;
   backgroundImageUrl: string | null;
   navigateToSettings: () => void;
-  onWinnersDrawn: (winners: string[]) => void;
+  onWinnersDrawn: (draw: Draw) => void; // Modified to pass full Draw object
   setErrorApp: (error: string | null) => void;
-  selectedPrize: Prize | null; // Added
+  selectedPrize: Prize | null;
+  excludeWinners: boolean; // Added
+  allDrawHistory: Draw[]; // Added to get all past winners
 }
 
 const StopIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -40,9 +42,11 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
   rollingSpeed,
   backgroundImageUrl,
   navigateToSettings,
-  // onWinnersDrawn,
+  onWinnersDrawn,
   setErrorApp,
-  selectedPrize // Added
+  selectedPrize,
+  excludeWinners, // Added
+  allDrawHistory // Added
 }) => {
   const [isRolling, setIsRolling] = useState<boolean>(false);
   const [currentRollingName, setCurrentRollingName] = useState<string[]>([]);
@@ -70,18 +74,32 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     setDisplayedNameForStop([]); 
   }, [isRolling, participants, participantCount, numberOfWinnersToSelect]);
 
+  const getAvailableParticipants = () => {
+    if (!excludeWinners) {
+      return [...participants];
+    }
+    const pastWinners = new Set(allDrawHistory.flatMap(draw => draw.winners));
+    return participants.filter(p => !pastWinners.has(p));
+  };
 
   const startRolling = () => {
-    if (participantCount === 0) {
-      setErrorApp("没有参与者无法开始抽奖。");
+    const availableParticipants = getAvailableParticipants();
+    const availableCount = availableParticipants.length;
+
+    if (availableCount === 0) {
+      setErrorApp("没有可参与抽奖的人员。" + (excludeWinners ? " (所有人都已中奖或无参与者)" : ""));
       return;
     }
     if (numberOfWinnersToSelect <= 0) {
       setErrorApp("中奖人数必须至少为1。");
       return;
     }
-    if (numberOfWinnersToSelect > participantCount) {
-      setErrorApp(`中奖人数 (${numberOfWinnersToSelect}) 不能超过参与者总数 (${participantCount})。`);
+    if (numberOfWinnersToSelect > availableCount) {
+      setErrorApp(`中奖人数 (${numberOfWinnersToSelect}) 不能超过可参与抽奖人数 (${availableCount})。`);
+      return;
+    }
+     if (!selectedPrize) {
+      setErrorApp("请先在设置页面选择一个奖品。");
       return;
     }
 
@@ -91,7 +109,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
 
     // Initial display for rolling start
     const initialRollingNames = Array(numberOfWinnersToSelect).fill('').map(() => {
-        const shuffled = [...participants].sort(() => 0.5 - Math.random());
+        const shuffled = [...availableParticipants].sort(() => 0.5 - Math.random());
         return shuffled[0];
     });
     setCurrentRollingName(initialRollingNames);
@@ -100,19 +118,26 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
 
     intervalRef.current = window.setInterval(() => {
       setCurrentRollingName(prevNames => {
-        if (participantCount === 0) return prevNames; // Should not happen due to checks, but safeguard
+        if (availableCount === 0) return prevNames;
         
-        // Ensure unique names are picked for rolling display if multiple winners
-        const availableParticipants = [...participants];
+        const currentAvailable = getAvailableParticipants(); // Recalculate in case of very fast subsequent draws (though unlikely here)
+        const currentAvailableCount = currentAvailable.length;
+        if (currentAvailableCount === 0) return prevNames;
+
+
         const newRollingNames: string[] = [];
+        const participantsToPickFrom = [...currentAvailable]; // Use a mutable copy for picking
         
         for (let i = 0; i < numberOfWinnersToSelect; i++) {
-            if (availableParticipants.length === 0) { // If not enough unique participants, reuse
-                newRollingNames.push(participants[Math.floor(Math.random() * participantCount)]);
+            if (participantsToPickFrom.length === 0) {
+                // Fallback if not enough unique participants (e.g., drawing 3 from pool of 2)
+                // This case should ideally be prevented by the numberOfWinnersToSelect > availableCount check earlier
+                // but as a safeguard, pick randomly from the original available list for display purposes
+                newRollingNames.push(currentAvailable[Math.floor(Math.random() * currentAvailableCount)]);
                 continue;
             }
-            const randomIndex = Math.floor(Math.random() * availableParticipants.length);
-            newRollingNames.push(availableParticipants.splice(randomIndex, 1)[0]);
+            const randomIndex = Math.floor(Math.random() * participantsToPickFrom.length);
+            newRollingNames.push(participantsToPickFrom.splice(randomIndex, 1)[0]);
         }
         return newRollingNames;
       });
@@ -126,14 +151,20 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
       intervalRef.current = null;
     }
 
-    // The names currently on screen when stop is pressed are the winners
     const finalDrawnWinners = [...currentRollingName]; 
-    
-    setDisplayedNameForStop(finalDrawnWinners); // Keep displaying these names
+    setDisplayedNameForStop(finalDrawnWinners);
 
-    setTimeout(() => {
-      // onWinnersDrawn(finalDrawnWinners);
-    }, 500); 
+    if (selectedPrize && finalDrawnWinners.length > 0) {
+      const newDraw: Draw = {
+        id: `draw-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        prizeName: selectedPrize.name,
+        prizeImageUrl: selectedPrize.imageUrl,
+        winners: finalDrawnWinners,
+        timestamp: new Date(),
+        editable: true,
+      };
+      onWinnersDrawn(newDraw);
+    }
   };
 
   useEffect(() => {
@@ -144,7 +175,11 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     };
   }, []);
 
-  const canStartLottery = participantCount > 0 && numberOfWinnersToSelect > 0 && numberOfWinnersToSelect <= participantCount;
+  const availableParticipantsForCheck = getAvailableParticipants();
+  const canStartLottery = availableParticipantsForCheck.length > 0 &&
+                          numberOfWinnersToSelect > 0 &&
+                          numberOfWinnersToSelect <= availableParticipantsForCheck.length &&
+                          !!selectedPrize;
 
   const namesToDisplay = isRolling 
     ? currentRollingName 

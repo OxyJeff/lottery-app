@@ -19,4 +19,5 @@ export interface Draw {
   prizeImageUrl?: string; // Store a copy, in case prize is deleted/modified later
   winners: string[];
   timestamp: Date;
+  editable?: boolean;
 }
