@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [appTitle, setAppTitle] = useState<string>('抽奖系统');
   const [appSubtitle, setAppSubtitle] = useState<string>('公平公正，好运连连！'); // New state for app subtitle
   const [rollingSpeed, setRollingSpeed] = useState<RollingSpeed>('medium'); // New state for rolling speed
+  const [excludePreviousWinners, setExcludePreviousWinners] = useState<boolean>(false); // New state for excluding previous winners
   
   const [winners, setWinners] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +25,11 @@ const App: React.FC = () => {
   const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false);
 
   const actualParticipants = participantsText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+  
+  // Filter out previous winners if the exclude setting is enabled
+  const availableParticipants = excludePreviousWinners 
+    ? actualParticipants.filter(participant => !winners.includes(participant))
+    : actualParticipants;
   
   const handleFileUpload = useCallback((newParticipants: string[]) => {
     setParticipantsText(prevText => {
@@ -44,7 +50,7 @@ const App: React.FC = () => {
   }, []);
   
   useEffect(() => {
-    const numParticipants = actualParticipants.length;
+    const numParticipants = availableParticipants.length;
     if (numParticipants > 0) {
       if (numberOfWinnersToSelect > numParticipants) {
         setNumberOfWinnersToSelect(numParticipants);
@@ -54,19 +60,23 @@ const App: React.FC = () => {
     } else {
       setNumberOfWinnersToSelect(1);
     }
-  }, [participantsText, numberOfWinnersToSelect, actualParticipants.length]);
+  }, [participantsText, numberOfWinnersToSelect, availableParticipants.length]);
 
   const navigateToLottery = () => {
-    if (actualParticipants.length === 0) {
-      setError("请先添加参与者名单。");
+    if (availableParticipants.length === 0) {
+      if (excludePreviousWinners && actualParticipants.length > 0) {
+        setError("所有参与者都已中奖，请关闭「排除已中奖人员」设置或添加新的参与者。");
+      } else {
+        setError("请先添加参与者名单。");
+      }
       return;
     }
     if (numberOfWinnersToSelect <=0) {
         setError("中奖人数必须至少为1。");
         return;
     }
-    if (numberOfWinnersToSelect > actualParticipants.length) {
-      setError(`中奖人数 (${numberOfWinnersToSelect}) 不能超过参与者总数 (${actualParticipants.length})。`);
+    if (numberOfWinnersToSelect > availableParticipants.length) {
+      setError(`中奖人数 (${numberOfWinnersToSelect}) 不能超过可参与者总数 (${availableParticipants.length})。`);
       return;
     }
     setError(null);
@@ -75,7 +85,6 @@ const App: React.FC = () => {
 
   const navigateToSettings = () => {
     setCurrentPage('settings');
-    setWinners([]);
     setShowWinnerModal(false);
   };
 
@@ -108,21 +117,25 @@ const App: React.FC = () => {
               backgroundImageUrl={backgroundImageUrl}
               onBackgroundImageChange={setBackgroundImageUrl}
               navigateToLottery={navigateToLottery}
-              maxWinners={actualParticipants.length}
+              maxWinners={availableParticipants.length}
               setLoading={setIsLoadingFile}
               setError={setError}
+              excludePreviousWinners={excludePreviousWinners}
+              onExcludePreviousWinnersChange={setExcludePreviousWinners}
+              winners={winners}
+              onResetWinners={() => setWinners([])}
             />
           </main>
         )}
         {currentPage === 'lottery' && (
           <LotteryPage
-            participants={actualParticipants}
+            participants={availableParticipants}
             numberOfWinnersToSelect={numberOfWinnersToSelect}
             rollingSpeed={rollingSpeed}
             backgroundImageUrl={backgroundImageUrl}
             navigateToSettings={navigateToSettings}
             onWinnersDrawn={(drawnWinners) => {
-              setWinners(drawnWinners);
+              setWinners(prevWinners => [...prevWinners, ...drawnWinners]);
               // setShowWinnerModal(true); // Modal will no longer be shown
             }}
             setErrorApp={setError}

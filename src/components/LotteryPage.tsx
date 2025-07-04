@@ -38,7 +38,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
   rollingSpeed,
   backgroundImageUrl,
   navigateToSettings,
-  // onWinnersDrawn,
+  onWinnersDrawn,
   setErrorApp
 }) => {
   const [isRolling, setIsRolling] = useState<boolean>(false);
@@ -129,7 +129,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     setDisplayedNameForStop(finalDrawnWinners); // Keep displaying these names
 
     setTimeout(() => {
-      // onWinnersDrawn(finalDrawnWinners);
+      onWinnersDrawn(finalDrawnWinners);
     }, 500); 
   };
 

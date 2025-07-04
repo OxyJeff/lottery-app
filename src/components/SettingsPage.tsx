@@ -23,6 +23,10 @@ interface SettingsPageProps {
   maxWinners: number;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  excludePreviousWinners: boolean;
+  onExcludePreviousWinnersChange: (exclude: boolean) => void;
+  winners: string[];
+  onResetWinners: () => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -42,7 +46,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   navigateToLottery,
   maxWinners,
   setLoading,
-  setError
+  setError,
+  excludePreviousWinners,
+  onExcludePreviousWinnersChange,
+  winners,
+  onResetWinners
 }) => {
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,6 +187,34 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <option value="fast">快</option>
             </select>
             <p className="text-xs text-gray-400 mt-1">调整抽奖时名字滚动的快慢。</p>
+          </div>
+
+          <div>
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={excludePreviousWinners}
+                onChange={(e) => onExcludePreviousWinnersChange(e.target.checked)}
+                className="w-4 h-4 text-sky-600 bg-gray-700 border-gray-600 rounded focus:ring-sky-500 focus:ring-2"
+                aria-describedby="exclude-winners-info"
+              />
+              <span className="text-sm font-medium text-gray-300">排除已中奖人员</span>
+            </label>
+            <p id="exclude-winners-info" className="text-xs text-gray-400 mt-1">
+              {excludePreviousWinners ? '开启后，已中奖的人员将不会再次被抽中' : '关闭时，所有参与者都可能被重复抽中'}
+              {winners.length > 0 && (
+                <span className="block mt-1 text-yellow-400">
+                  当前已中奖人员 ({winners.length} 人): {winners.join(', ')}
+                  <button 
+                    onClick={onResetWinners}
+                    className="ml-2 text-xs text-red-400 hover:text-red-300 underline"
+                    title="重置中奖记录"
+                  >
+                    重置
+                  </button>
+                </span>
+              )}
+            </p>
           </div>
 
           <div>
