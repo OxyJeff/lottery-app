@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { RollingSpeed } from '../App';
+import type { Prize, WinnerRecord } from '../types';
 import { SparklesIcon } from './icons';
 
 interface LotteryPageProps {
@@ -9,8 +10,10 @@ interface LotteryPageProps {
   rollingSpeed: RollingSpeed;
   backgroundImageUrl: string | null;
   navigateToSettings: () => void;
-  onWinnersDrawn: (winners: string[]) => void;
+  onWinnersDrawn: (winners: string[], selectedPrize: Prize | null) => void;
   setErrorApp: (error: string | null) => void;
+  prizes: Prize[];
+  selectedPrizeId: string | null;
 }
 
 const StopIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -39,17 +42,18 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
   backgroundImageUrl,
   navigateToSettings,
   onWinnersDrawn,
-  setErrorApp
+  setErrorApp,
+  prizes,
+  selectedPrizeId
 }) => {
-  const [isRolling, setIsRolling] = useState<boolean>(false);
   const [currentRollingName, setCurrentRollingName] = useState<string[]>([]);
   const [displayedNameForStop, setDisplayedNameForStop] = useState<string[]>([]);
   const intervalRef = useRef<number | null>(null);
-
+  const isRollingRef = useRef<boolean>(false);
   const participantCount = participants.length;
 
   useEffect(() => {
-    if (isRolling) return; 
+    if (isRollingRef.current) return; 
 
     let initialNames: string[];
     if (participantCount === 0) {
@@ -64,8 +68,8 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
       initialNames = ["等待配置"];
     }
     setCurrentRollingName(initialNames);
-    setDisplayedNameForStop([]); 
-  }, [isRolling, participants, participantCount, numberOfWinnersToSelect]);
+    // setDisplayedNameForStop([]); 
+  }, [participants, participantCount, numberOfWinnersToSelect]);
 
 
   const startRolling = () => {
@@ -83,7 +87,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     }
 
     setErrorApp(null);
-    setIsRolling(true);
+    isRollingRef.current = true;
     setDisplayedNameForStop([]); 
 
     // Initial display for rolling start
@@ -98,7 +102,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     intervalRef.current = window.setInterval(() => {
       setCurrentRollingName(prevNames => {
         if (participantCount === 0) return prevNames; // Should not happen due to checks, but safeguard
-        
+        if (isRollingRef.current === false) return prevNames; // Stop if rolling is set to false
         // Ensure unique names are picked for rolling display if multiple winners
         const availableParticipants = [...participants];
         const newRollingNames: string[] = [];
@@ -117,7 +121,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
   };
 
   const stopRollingAndDrawWinners = () => {
-    setIsRolling(false);
+    isRollingRef.current = false;
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -129,7 +133,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     setDisplayedNameForStop(finalDrawnWinners); // Keep displaying these names
 
     setTimeout(() => {
-      onWinnersDrawn(finalDrawnWinners);
+      onWinnersDrawn(finalDrawnWinners, selectedPrize || null);
     }, 500); 
   };
 
@@ -143,9 +147,12 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
 
   const canStartLottery = participantCount > 0 && numberOfWinnersToSelect > 0 && numberOfWinnersToSelect <= participantCount;
 
-  const namesToDisplay = isRolling 
+  const namesToDisplay = isRollingRef.current 
     ? currentRollingName 
     : (displayedNameForStop.length > 0 ? displayedNameForStop : currentRollingName);
+
+  // Get current selected prize
+  const selectedPrize = prizes.find(prize => prize.id === selectedPrizeId);
 
   return (
     <div
@@ -167,9 +174,57 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
       </button>
 
       <div className="text-center z-0">
-        <p className="text-xl md:text-2xl mb-6 text-gray-300 bg-black bg-opacity-30 px-3 py-1 rounded">
-          当前总参与人数: {participantCount}名 | 抽取人数: {numberOfWinnersToSelect}名
-        </p>
+        {/* Prize Display Section */}
+        {selectedPrize && (
+          <div className="mb-8 p-6 bg-gradient-to-br from-yellow-400/20 via-amber-500/20 to-orange-500/20 rounded-2xl shadow-2xl border-4 animate-gradient-border animate-prize-glow">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-lg opacity-70 animate-pulse"></div>
+                <div className="relative">
+                  {selectedPrize.imageUrl ? (
+                    <img
+                      src={selectedPrize.imageUrl}
+                      alt={selectedPrize.name}
+                      className="w-56 h-56 object-cover rounded-full shadow-2xl border-4 border-yellow-400 transform hover:scale-105 transition-transform duration-300"
+                      style={{
+                        filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
+                      }}
+                    />
+                  ) : (
+                    <div className="w-56 h-56 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-yellow-400">
+                      <span className="text-8xl animate-pulse">🎁</span>
+                    </div>
+                  )}
+                </div>
+                {/* Floating sparkles */}
+                <div className="absolute -top-2 -right-2 text-yellow-300 animate-sparkle">
+                  <span className="text-2xl">✨</span>
+                </div>
+                <div className="absolute -bottom-2 -left-2 text-yellow-300 animate-sparkle" style={{animationDelay: '0.5s'}}>
+                  <span className="text-2xl">✨</span>
+                </div>
+                <div className="absolute -top-2 -left-2 text-yellow-300 animate-sparkle" style={{animationDelay: '1s'}}>
+                  <span className="text-xl">⭐</span>
+                </div>
+                <div className="absolute -bottom-2 -right-2 text-yellow-300 animate-sparkle" style={{animationDelay: '1.5s'}}>
+                  <span className="text-xl">⭐</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <span className="text-2xl animate-bounce">🎉</span>
+                  <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-400 drop-shadow-lg">
+                    {selectedPrize.name}
+                  </h3>
+                  <span className="text-2xl animate-bounce" style={{animationDelay: '0.3s'}}>🎉</span>
+                </div>
+                <p className="text-lg text-yellow-200 font-semibold opacity-90 animate-pulse">
+                  🏆 本次抽奖奖品 🏆
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div 
           className="my-8 md:my-12 p-6 bg-black bg-opacity-40 rounded-xl shadow-2xl flex flex-col items-center justify-center"
@@ -198,11 +253,15 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
           )}
         </div>
 
+        <p className="text-sm text-gray-400 mb-4 opacity-75">
+          总参与人数: {participantCount}名 | 抽取人数: {numberOfWinnersToSelect}名
+        </p>
+
         <div>
-          {isRolling && (
+          {isRollingRef.current && (
             <span className="animate-pulse-slow block text-sm text-gray-300 mt-2">正在飞速抽取...</span>
           )}
-          {!isRolling && displayedNameForStop.length === 0 && (
+          {!isRollingRef.current && displayedNameForStop.length === 0 && (
             canStartLottery ? (
               <span className="block text-sm text-gray-300 mt-2">点击“开始抽奖”</span>
             ) : (
@@ -213,7 +272,7 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
 
 
         <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center">
-          {!isRolling ? (
+          {!isRollingRef.current ? (
             <button
               onClick={startRolling}
               disabled={!canStartLottery}

@@ -4,6 +4,7 @@ import ParticipantInputArea from './ParticipantInputArea';
 import FileUpload from './FileUpload';
 import { CogIcon, UsersIcon, PhotoIcon } from './icons';
 import type { RollingSpeed } from '../App';
+import type { Prize, WinnerRecord } from '../types';
 
 interface SettingsPageProps {
   appTitle: string;
@@ -27,6 +28,11 @@ interface SettingsPageProps {
   onExcludePreviousWinnersChange: (exclude: boolean) => void;
   winners: string[];
   onResetWinners: () => void;
+  prizes: Prize[];
+  onPrizesChange: (prizes: Prize[]) => void;
+  selectedPrizeId: string | null;
+  onSelectedPrizeIdChange: (prizeId: string | null) => void;
+  winnerRecords: WinnerRecord[];
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -50,9 +56,58 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   excludePreviousWinners,
   onExcludePreviousWinnersChange,
   winners,
-  onResetWinners
+  onResetWinners,
+  prizes,
+  onPrizesChange,
+  selectedPrizeId,
+  onSelectedPrizeIdChange,
+  winnerRecords,
 }) => {
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Prize management methods
+  const addPrize = () => {
+    const newPrize: Prize = {
+      id: Date.now().toString(),
+      name: '',
+      imageUrl: null,
+    };
+    onPrizesChange([...prizes, newPrize]);
+  };
+
+  const updatePrize = (prizeId: string, updates: Partial<Prize>) => {
+    const updatedPrizes = prizes.map(prize => 
+      prize.id === prizeId ? { ...prize, ...updates } : prize
+    );
+    onPrizesChange(updatedPrizes);
+  };
+
+  const deletePrize = (prizeId: string) => {
+    const updatedPrizes = prizes.filter(prize => prize.id !== prizeId);
+    onPrizesChange(updatedPrizes);
+    if (selectedPrizeId === prizeId) {
+      onSelectedPrizeIdChange(null);
+    }
+  };
+
+  const handlePrizeImageChange = (prizeId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError("奖品图片文件不能超过5MB。");
+        return;
+      }
+      setError(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updatePrize(prizeId, { imageUrl: reader.result as string });
+      };
+      reader.onerror = () => {
+        setError("读取奖品图片失败。");
+      }
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleNumberOfWinnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let num = parseInt(e.target.value, 10);
@@ -202,17 +257,39 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             </label>
             <p id="exclude-winners-info" className="text-xs text-gray-400 mt-1">
               {excludePreviousWinners ? '开启后，已中奖的人员将不会再次被抽中' : '关闭时，所有参与者都可能被重复抽中'}
-              {winners.length > 0 && (
-                <span className="block mt-1 text-yellow-400">
-                  当前已中奖人员 ({winners.length} 人): {winners.join(', ')}
-                  <button 
-                    onClick={onResetWinners}
-                    className="ml-2 text-xs text-red-400 hover:text-red-300 underline"
-                    title="重置中奖记录"
-                  >
-                    重置
-                  </button>
-                </span>
+              {winnerRecords.length > 0 && (
+                <div className="block mt-2 text-yellow-400">
+                  <div className="mb-2">
+                    当前已中奖人员 ({winnerRecords.length} 人次):
+                    <button 
+                      onClick={onResetWinners}
+                      className="ml-2 text-xs text-red-400 hover:text-red-300 underline"
+                      title="重置中奖记录"
+                    >
+                      重置
+                    </button>
+                  </div>
+                  <div className="max-h-32 overflow-y-auto bg-gray-700 p-2 rounded text-xs space-y-1">
+                    {winnerRecords.map((record) => (
+                      <div key={record.id} className="flex items-center justify-between py-1 border-b border-gray-600 last:border-b-0">
+                        <span className="text-yellow-300">{record.winnerName}</span>
+                        <span className="text-gray-300">
+                          {record.prize ? (
+                            <span className="flex items-center space-x-1">
+                              <span>🎁</span>
+                              <span>{record.prize.name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">无奖品</span>
+                          )}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          {record.drawTime.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </p>
           </div>
@@ -251,6 +328,97 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             )}
             <p className="text-xs text-gray-400 mt-1">为抽奖页面设置一个背景图片。最大5MB。</p>
           </div>
+        </div>
+      </section>
+
+      {/* Prize Management Section */}
+      <section aria-labelledby="prize-config-heading" className="mt-8">
+        <h2 id="prize-config-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+          <span className="w-7 h-7 mr-2 text-2xl">🎁</span>
+          奖品管理
+        </h2>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl space-y-6">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-300">设置抽奖奖品，每次抽奖可以选择一个奖品</p>
+            <button
+              onClick={addPrize}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              添加奖品
+            </button>
+          </div>
+
+          {prizes.length > 0 && (
+            <div className="space-y-4">
+              {prizes.map((prize) => (
+                <div key={prize.id} className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        奖品名称
+                      </label>
+                      <input
+                        type="text"
+                        value={prize.name}
+                        onChange={(e) => updatePrize(prize.id, { name: e.target.value })}
+                        placeholder="例如：一等奖"
+                        className="w-full bg-gray-600 border border-gray-500 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        奖品图片 (可选)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handlePrizeImageChange(prize.id, e)}
+                        className="w-full bg-gray-600 border border-gray-500 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  {prize.imageUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={prize.imageUrl}
+                        alt={prize.name || '奖品图片'}
+                        className="w-20 h-20 object-cover rounded-md border border-gray-500"
+                      />
+                    </div>
+                  )}
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => deletePrize(prize.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded text-sm transition-colors"
+                    >
+                      删除奖品
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {prizes.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                选择当前抽奖奖品
+              </label>
+              <select
+                value={selectedPrizeId || ''}
+                onChange={(e) => onSelectedPrizeIdChange(e.target.value || null)}
+                className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+              >
+                <option value="">不选择奖品</option>
+                {prizes.map((prize) => (
+                  <option key={prize.id} value={prize.id}>
+                    {prize.name || '未命名奖品'}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">选择的奖品将在抽奖页面显示</p>
+            </div>
+          )}
         </div>
       </section>
 

@@ -5,6 +5,7 @@ import LotteryPage from './components/LotteryPage';
 import Modal from './components/Modal';
 import WinnerDisplay from './components/WinnerDisplay';
 import { SparklesIcon } from './components/icons';
+import type { Prize, WinnerRecord } from './types';
 
 export type PageView = 'settings' | 'lottery';
 export type RollingSpeed = 'slow' | 'medium' | 'fast';
@@ -19,6 +20,11 @@ const App: React.FC = () => {
   const [rollingSpeed, setRollingSpeed] = useState<RollingSpeed>('medium'); // New state for rolling speed
   const [excludePreviousWinners, setExcludePreviousWinners] = useState<boolean>(false); // New state for excluding previous winners
   
+  // Prize-related states
+  const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [selectedPrizeId, setSelectedPrizeId] = useState<string | null>(null);
+  
+  const [winnerRecords, setWinnerRecords] = useState<WinnerRecord[]>([]);
   const [winners, setWinners] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
@@ -30,6 +36,19 @@ const App: React.FC = () => {
   const availableParticipants = excludePreviousWinners 
     ? actualParticipants.filter(participant => !winners.includes(participant))
     : actualParticipants;
+
+  // Handle winners drawn with prize information
+  const handleWinnersDrawn = useCallback((drawnWinners: string[], selectedPrize: Prize | null) => {
+    const newWinnerRecords: WinnerRecord[] = drawnWinners.map(winner => ({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      winnerName: winner,
+      prize: selectedPrize,
+      drawTime: new Date()
+    }));
+
+    setWinnerRecords(prevRecords => [...prevRecords, ...newWinnerRecords]);
+    setWinners(prevWinners => [...prevWinners, ...drawnWinners]);
+  }, []);
   
   const handleFileUpload = useCallback((newParticipants: string[]) => {
     setParticipantsText(prevText => {
@@ -123,7 +142,15 @@ const App: React.FC = () => {
               excludePreviousWinners={excludePreviousWinners}
               onExcludePreviousWinnersChange={setExcludePreviousWinners}
               winners={winners}
-              onResetWinners={() => setWinners([])}
+              onResetWinners={() => {
+                setWinners([]);
+                setWinnerRecords([]);
+              }}
+              prizes={prizes}
+              onPrizesChange={setPrizes}
+              selectedPrizeId={selectedPrizeId}
+              onSelectedPrizeIdChange={setSelectedPrizeId}
+              winnerRecords={winnerRecords}
             />
           </main>
         )}
@@ -134,11 +161,10 @@ const App: React.FC = () => {
             rollingSpeed={rollingSpeed}
             backgroundImageUrl={backgroundImageUrl}
             navigateToSettings={navigateToSettings}
-            onWinnersDrawn={(drawnWinners) => {
-              setWinners(prevWinners => [...prevWinners, ...drawnWinners]);
-              // setShowWinnerModal(true); // Modal will no longer be shown
-            }}
+            onWinnersDrawn={handleWinnersDrawn}
             setErrorApp={setError}
+            prizes={prizes}
+            selectedPrizeId={selectedPrizeId}
           />
         )}
       </div>
