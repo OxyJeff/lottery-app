@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { RollingSpeed } from '../App';
-import type { Prize, WinnerRecord } from '../types';
+import type { Prize } from '../types';
 import { SparklesIcon } from './icons';
 
 interface LotteryPageProps {
