@@ -55,7 +55,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   setError,
   excludePreviousWinners,
   onExcludePreviousWinnersChange,
-  winners,
   onResetWinners,
   prizes,
   onPrizesChange,
