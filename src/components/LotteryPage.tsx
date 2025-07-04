@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import type { RollingSpeed } from '../App';
 import type { Prize } from '../types';
@@ -158,7 +157,9 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
     <div
       className="w-full flex-grow flex flex-col items-center justify-center p-4 text-white relative overflow-hidden"
       style={{
-        backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'linear-gradient(to br, #1f2937, #3730a3, #1f2937)',
+        backgroundImage: backgroundImageUrl 
+          ? `url(${backgroundImageUrl})` 
+          : 'linear-gradient(135deg, #ff4500 0%, #ff6b35 25%, #f7931e 50%, #c77dff 75%, #7209b7 100%)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -174,12 +175,35 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
       </button>
 
       <div className="text-center z-0">
+        {/* 7th Anniversary Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-2xl animate-pulse">
+              7
+            </div>
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-lg">
+                势如虹 未来可
+              </h1>
+              <p className="text-xl text-white font-semibold mt-1 drop-shadow-lg">
+                企企七周年 · 感谢有你
+              </p>
+            </div>
+            <div className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-2xl animate-pulse" style={{animationDelay: '0.5s'}}>
+              7
+            </div>
+          </div>
+          <div className="text-lg text-white font-semibold opacity-95">
+            🎉 成就客户 · 成就伙伴 · 成就美好世界 🎉
+          </div>
+        </div>
+
         {/* Prize Display Section */}
         {selectedPrize && (
-          <div className="mb-8 p-6 bg-gradient-to-br from-yellow-400/20 via-amber-500/20 to-orange-500/20 rounded-2xl shadow-2xl border-4 animate-gradient-border animate-prize-glow">
+          <div className="mb-8 p-6 bg-gradient-to-br from-orange-400/30 via-red-400/20 to-purple-600/30 rounded-2xl shadow-2xl border-4 border-yellow-400 animate-prize-glow backdrop-blur-sm">
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-lg opacity-70 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur-xl opacity-80 animate-pulse"></div>
                 <div className="relative">
                   {selectedPrize.imageUrl ? (
                     <img
@@ -187,112 +211,125 @@ const LotteryPage: React.FC<LotteryPageProps> = ({
                       alt={selectedPrize.name}
                       className="w-56 h-56 object-cover rounded-full shadow-2xl border-4 border-yellow-400 transform hover:scale-105 transition-transform duration-300"
                       style={{
-                        filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
+                        filter: 'drop-shadow(0 0 30px rgba(255, 165, 0, 0.8))',
                       }}
                     />
                   ) : (
-                    <div className="w-56 h-56 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-yellow-400">
+                    <div className="w-56 h-56 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-yellow-400">
                       <span className="text-8xl animate-pulse">🎁</span>
                     </div>
                   )}
                 </div>
-                {/* Floating sparkles */}
-                <div className="absolute -top-2 -right-2 text-yellow-300 animate-sparkle">
+                {/* Enhanced sparkles with 7th anniversary theme */}
+                <div className="absolute -top-4 -right-4 text-yellow-300 animate-sparkle">
+                  <span className="text-3xl">🎊</span>
+                </div>
+                <div className="absolute -bottom-4 -left-4 text-orange-300 animate-sparkle" style={{animationDelay: '0.5s'}}>
+                  <span className="text-3xl">🎉</span>
+                </div>
+                <div className="absolute -top-4 -left-4 text-yellow-300 animate-sparkle" style={{animationDelay: '1s'}}>
                   <span className="text-2xl">✨</span>
                 </div>
-                <div className="absolute -bottom-2 -left-2 text-yellow-300 animate-sparkle" style={{animationDelay: '0.5s'}}>
-                  <span className="text-2xl">✨</span>
+                <div className="absolute -bottom-4 -right-4 text-red-300 animate-sparkle" style={{animationDelay: '1.5s'}}>
+                  <span className="text-2xl">🌟</span>
                 </div>
-                <div className="absolute -top-2 -left-2 text-yellow-300 animate-sparkle" style={{animationDelay: '1s'}}>
-                  <span className="text-xl">⭐</span>
-                </div>
-                <div className="absolute -bottom-2 -right-2 text-yellow-300 animate-sparkle" style={{animationDelay: '1.5s'}}>
-                  <span className="text-xl">⭐</span>
+                <div className="absolute top-0 right-8 text-purple-300 animate-sparkle" style={{animationDelay: '2s'}}>
+                  <span className="text-xl">💫</span>
                 </div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <span className="text-2xl animate-bounce">🎉</span>
-                  <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-400 drop-shadow-lg">
+                <div className="flex items-center justify-center space-x-3 mb-2">
+                  <span className="text-3xl animate-bounce">🏆</span>
+                  <h3 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 drop-shadow-lg">
                     {selectedPrize.name}
                   </h3>
-                  <span className="text-2xl animate-bounce" style={{animationDelay: '0.3s'}}>🎉</span>
+                  <span className="text-3xl animate-bounce" style={{animationDelay: '0.3s'}}>🏆</span>
                 </div>
-                <p className="text-lg text-yellow-200 font-semibold opacity-90 animate-pulse">
-                  🏆 本次抽奖奖品 🏆
-                </p>
+                <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-lg p-3 mt-2">
+                  <p className="text-xl text-white font-bold opacity-95">
+                    🎁 七周年庆典奖品 🎁
+                  </p>
+                  <p className="text-sm text-white font-semibold mt-1">
+                    感谢有你，未来可期
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         <div 
-          className="my-8 md:my-12 p-6 bg-black bg-opacity-40 rounded-xl shadow-2xl flex flex-col items-center justify-center"
-          style={{minWidth: '300px', width: 'auto', maxWidth: '90vw', minHeight: `${numberOfWinnersToSelect * (numberOfWinnersToSelect === 1 ? 80 : 50) + 40}px`}} // Adjust minHeight based on number of winners
+          className="my-8 md:my-12 p-8 bg-gradient-to-br from-black/40 via-purple-900/30 to-black/40 rounded-2xl shadow-2xl backdrop-blur-sm border-2 border-orange-400/50 animate-prize-glow flex flex-col items-center justify-center"
+          style={{minWidth: '300px', width: 'auto', maxWidth: '90vw', minHeight: `${numberOfWinnersToSelect * (numberOfWinnersToSelect === 1 ? 80 : 50) + 60}px`}}
         >
           {namesToDisplay.length > 0 ? (
             namesToDisplay.map((name, index) => (
               <p 
                 key={index} 
-                className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-red-400 break-all text-center ${
-                  numberOfWinnersToSelect === 1 ? 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl' : 'text-3xl sm:text-4xl md:text-5xl my-1 md:my-2'
+                className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 break-all text-center ${
+                  numberOfWinnersToSelect === 1 ? 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl' : 'text-3xl sm:text-4xl md:text-5xl my-2 md:my-3'
                 }`}
                 style={{ 
                     lineHeight: '1.2',
-                    textShadow: '0 0 10px rgba(255,255,255,0.3), 0 0 20px rgba(255,105,180,0.3)',
-                    padding: '0 10px', // Add some padding for very long names
+                    textShadow: '0 0 15px rgba(255,165,0,0.8), 0 0 30px rgba(255,69,0,0.6), 0 0 45px rgba(255,140,0,0.4)',
+                    padding: '0 15px',
                 }} 
               >
                 {name}
               </p>
             ))
           ) : (
-             <p className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-500 ${numberOfWinnersToSelect === 1 ? 'text-5xl' : 'text-3xl'}`}>
-                {participantCount > 0 ? "准备就绪" : "请先设置参与者"}
+             <p className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400 ${numberOfWinnersToSelect === 1 ? 'text-5xl' : 'text-3xl'}`}>
+                {participantCount > 0 ? "🎊 准备抽奖 🎊" : "请先设置参与者"}
              </p>
           )}
         </div>
 
-        <p className="text-sm text-gray-400 mb-4 opacity-75">
-          总参与人数: {participantCount}名 | 抽取人数: {numberOfWinnersToSelect}名
+        <p className="text-sm text-white mb-4 opacity-95 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2">
+          🎯 总参与人数: {participantCount}名 | 抽取人数: {numberOfWinnersToSelect}名 🎯
         </p>
 
         <div>
           {isRollingRef.current && (
-            <span className="animate-pulse-slow block text-sm text-gray-300 mt-2">正在飞速抽取...</span>
+            <span className="animate-pulse-slow block text-lg text-white mt-2 font-semibold">
+              ✨ 正在为您抽取幸运儿... ✨
+            </span>
           )}
           {!isRollingRef.current && displayedNameForStop.length === 0 && (
             canStartLottery ? (
-              <span className="block text-sm text-gray-300 mt-2">点击“开始抽奖”</span>
+              <span className="block text-lg text-white mt-2 font-semibold">
+                🎊 点击开始，见证幸运时刻 🎊
+              </span>
             ) : (
-              <span className="block text-sm text-red-400 mt-2">请检查参与者或中奖人数设置</span>
+              <span className="block text-sm text-white mt-2 bg-red-900/30 backdrop-blur-sm rounded-lg px-3 py-1">
+                ⚠️ 请检查参与者或中奖人数设置 ⚠️
+              </span>
             )
           )}
         </div>
-
 
         <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center">
           {!isRollingRef.current ? (
             <button
               onClick={startRolling}
               disabled={!canStartLottery}
-              className={`w-full sm:w-auto text-lg font-semibold py-4 px-10 rounded-lg shadow-xl transition-all duration-150 ease-in-out text-white flex items-center justify-center
+              className={`w-full sm:w-auto text-xl font-bold py-5 px-12 rounded-xl shadow-2xl transition-all duration-200 ease-in-out text-white flex items-center justify-center border-2
                 ${!canStartLottery
-                  ? 'bg-gray-600 cursor-not-allowed opacity-70'
-                  : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 focus:ring-4 focus:ring-green-400 focus:ring-opacity-50 transform hover:scale-105'}`}
+                  ? 'bg-gray-600 cursor-not-allowed opacity-70 border-gray-500'
+                  : 'bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 hover:from-orange-600 hover:via-red-600 hover:to-purple-700 border-yellow-400 focus:ring-4 focus:ring-orange-400 focus:ring-opacity-50 transform hover:scale-105 animate-pulse'}`}
               aria-label="开始抽奖"
             >
-              <SparklesIcon className="w-7 h-7 mr-3" />
-              开始抽奖
+              <SparklesIcon className="w-8 h-8 mr-3" />
+              🎊 开始抽奖 🎊
             </button>
           ) : (
             <button
               onClick={stopRollingAndDrawWinners}
-              className="w-full sm:w-auto text-lg font-semibold py-4 px-10 rounded-lg shadow-xl transition-all duration-150 ease-in-out text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 focus:ring-4 focus:ring-red-400 focus:ring-opacity-50 transform hover:scale-105 flex items-center justify-center"
+              className="w-full sm:w-auto text-xl font-bold py-5 px-12 rounded-xl shadow-2xl transition-all duration-200 ease-in-out text-white bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 hover:from-red-700 hover:via-pink-700 hover:to-purple-800 border-2 border-yellow-400 focus:ring-4 focus:ring-red-400 focus:ring-opacity-50 transform hover:scale-105 flex items-center justify-center animate-pulse"
               aria-label="停止抽奖并公布结果"
             >
-              <StopIcon className="w-7 h-7 mr-3" />
-              停止抽奖
+              <StopIcon className="w-8 h-8 mr-3" />
+              🏆 停止抽奖 🏆
             </button>
           )}
         </div>

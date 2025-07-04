@@ -151,7 +151,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   return (
     <div className="space-y-8">
       <section aria-labelledby="participant-settings-heading">
-        <h2 id="participant-settings-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+        <h2 id="participant-settings-heading" className="text-2xl font-semibold mb-4 text-white flex items-center">
           <UsersIcon className="w-7 h-7 mr-2" />
           参与者设置
         </h2>
@@ -167,13 +167,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       </section>
 
       <section aria-labelledby="lottery-config-heading">
-        <h2 id="lottery-config-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+        <h2 id="lottery-config-heading" className="text-2xl font-semibold mb-4 text-white flex items-center">
           <CogIcon className="w-7 h-7 mr-2" />
           抽奖参数设置
         </h2>
         <div className="bg-gray-800 p-6 rounded-lg shadow-xl space-y-6">
           <div>
-            <label htmlFor="appTitle" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="appTitle" className="block text-sm font-medium text-white mb-1">
               抽奖系统标题
             </label>
             <input
@@ -185,11 +185,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
               aria-label="设置抽奖系统标题"
             />
-            <p className="text-xs text-gray-400 mt-1">自定义显示在页面顶部的标题。</p>
+            <p className="text-xs text-white mt-1">自定义显示在页面顶部的标题。</p>
           </div>
 
           <div>
-            <label htmlFor="appSubtitle" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="appSubtitle" className="block text-sm font-medium text-white mb-1">
               副标题/描述
             </label>
             <input
@@ -201,11 +201,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-md p-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
               aria-label="设置抽奖系统副标题"
             />
-            <p className="text-xs text-gray-400 mt-1">自定义显示在主标题下方的小字描述。</p>
+            <p className="text-xs text-white mt-1">自定义显示在主标题下方的小字描述。</p>
           </div>
 
           <div>
-            <label htmlFor="numberOfWinners" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="numberOfWinners" className="block text-sm font-medium text-white mb-1">
               抽取中奖人数
             </label>
             <input
@@ -219,14 +219,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               aria-describedby="max-winners-info"
             />
             {maxWinners > 0 ? (
-              <p id="max-winners-info" className="text-xs text-gray-400 mt-1">最大中奖人数: {maxWinners} (基于当前参与者数量)</p>
+              <p id="max-winners-info" className="text-xs text-white mt-1">最大中奖人数: {maxWinners} (基于当前参与者数量)</p>
             ) : (
-              <p id="max-winners-info" className="text-xs text-gray-400 mt-1">请先添加参与者以确定最大中奖人数。</p>
+              <p id="max-winners-info" className="text-xs text-white mt-1">请先添加参与者以确定最大中奖人数。</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="rollingSpeed" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="rollingSpeed" className="block text-sm font-medium text-white mb-1">
               滚动速度
             </label>
             <select
@@ -240,7 +240,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <option value="medium">中</option>
               <option value="fast">快</option>
             </select>
-            <p className="text-xs text-gray-400 mt-1">调整抽奖时名字滚动的快慢。</p>
+            <p className="text-xs text-white mt-1">调整抽奖时名字滚动的快慢。</p>
           </div>
 
           <div>
@@ -252,12 +252,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 className="w-4 h-4 text-sky-600 bg-gray-700 border-gray-600 rounded focus:ring-sky-500 focus:ring-2"
                 aria-describedby="exclude-winners-info"
               />
-              <span className="text-sm font-medium text-gray-300">排除已中奖人员</span>
+              <span className="text-sm font-medium text-white">排除已中奖人员</span>
             </label>
-            <p id="exclude-winners-info" className="text-xs text-gray-400 mt-1">
+            <p id="exclude-winners-info" className="text-xs text-white mt-1">
               {excludePreviousWinners ? '开启后，已中奖的人员将不会再次被抽中' : '关闭时，所有参与者都可能被重复抽中'}
               {winnerRecords.length > 0 && (
-                <div className="block mt-2 text-yellow-400">
+                <div className="block mt-2 text-white">
                   <div className="mb-2">
                     当前已中奖人员 ({winnerRecords.length} 人次):
                     <button 
@@ -271,8 +271,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   <div className="max-h-32 overflow-y-auto bg-gray-700 p-2 rounded text-xs space-y-1">
                     {winnerRecords.map((record) => (
                       <div key={record.id} className="flex items-center justify-between py-1 border-b border-gray-600 last:border-b-0">
-                        <span className="text-yellow-300">{record.winnerName}</span>
-                        <span className="text-gray-300">
+                        <span className="text-white">{record.winnerName}</span>
+                        <span className="text-white">
                           {record.prize ? (
                             <span className="flex items-center space-x-1">
                               <span>🎁</span>
@@ -282,7 +282,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                             <span className="text-gray-500">无奖品</span>
                           )}
                         </span>
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-white text-xs">
                           {record.drawTime.toLocaleString()}
                         </span>
                       </div>
@@ -294,7 +294,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           </div>
 
           <div>
-            <label htmlFor="backgroundImage" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="backgroundImage" className="block text-sm font-medium text-white mb-1">
               抽奖页面背景图 (可选)
             </label>
             <input
@@ -310,7 +310,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-600 rounded-md cursor-pointer hover:border-sky-500 hover:bg-gray-700 transition-colors"
             >
               <PhotoIcon className="w-5 h-5 mr-2 text-gray-400" />
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-white">
                 {backgroundImageUrl ? (backgroundImageInputRef.current?.files?.[0]?.name || '已选择图片') : "选择图片... (推荐小于2MB)"}
               </span>
             </label>
@@ -325,20 +325,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 清除背景图片
               </button>
             )}
-            <p className="text-xs text-gray-400 mt-1">为抽奖页面设置一个背景图片。最大5MB。</p>
+            <p className="text-xs text-white mt-1">为抽奖页面设置一个背景图片。最大5MB。</p>
           </div>
         </div>
       </section>
 
       {/* Prize Management Section */}
       <section aria-labelledby="prize-config-heading" className="mt-8">
-        <h2 id="prize-config-heading" className="text-2xl font-semibold mb-4 text-sky-400 flex items-center">
+        <h2 id="prize-config-heading" className="text-2xl font-semibold mb-4 text-white flex items-center">
           <span className="w-7 h-7 mr-2 text-2xl">🎁</span>
           奖品管理
         </h2>
         <div className="bg-gray-800 p-6 rounded-lg shadow-xl space-y-6">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-300">设置抽奖奖品，每次抽奖可以选择一个奖品</p>
+            <p className="text-sm text-white">设置抽奖奖品，每次抽奖可以选择一个奖品</p>
             <button
               onClick={addPrize}
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
@@ -353,7 +353,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 <div key={prize.id} className="bg-gray-700 p-4 rounded-lg border border-gray-600">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-white mb-1">
                         奖品名称
                       </label>
                       <input
@@ -365,7 +365,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-white mb-1">
                         奖品图片 (可选)
                       </label>
                       <input
@@ -400,7 +400,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
           {prizes.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-white mb-1">
                 选择当前抽奖奖品
               </label>
               <select
@@ -415,7 +415,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-400 mt-1">选择的奖品将在抽奖页面显示</p>
+              <p className="text-xs text-white mt-1">选择的奖品将在抽奖页面显示</p>
             </div>
           )}
         </div>

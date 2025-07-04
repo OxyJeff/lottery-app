@@ -12,11 +12,11 @@ const ParticipantInputArea: React.FC<ParticipantInputAreaProps> = ({ participant
 
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-      <label htmlFor="participants" className="flex items-center text-xl font-semibold mb-3 text-sky-400">
+      <label htmlFor="participants" className="flex items-center text-xl font-semibold mb-3 text-white">
         <UsersIcon className="w-6 h-6 mr-2" />
         参与者 ({participantCount}名)
       </label>
-      <p className="text-sm text-gray-400 mb-3">
+      <p className="text-sm text-white mb-3">
         每行输入一名参与者。如果您上传Excel文件，此列表也会更新。
       </p>
       <textarea

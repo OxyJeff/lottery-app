@@ -37,11 +37,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, setLoading, setEr
 
   return (
     <div className="mt-6 bg-gray-800 p-6 rounded-lg shadow-xl">
-      <h3 className="text-xl font-semibold mb-3 text-sky-400 flex items-center">
+      <h3 className="text-xl font-semibold mb-3 text-white flex items-center">
         <UploadIcon className="w-6 h-6 mr-2" />
         上传参与者名单
       </h3>
-      <p className="text-sm text-gray-400 mb-3">
+      <p className="text-sm text-white mb-3">
         上传Excel文件（.xlsx, .xls）。姓名应位于第一个工作表的第一列。
       </p>
       <input
@@ -57,7 +57,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, setLoading, setEr
         className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-600 rounded-md cursor-pointer hover:border-sky-500 hover:bg-gray-700 transition-colors"
       >
         <UploadIcon className="w-5 h-5 mr-2 text-gray-400" />
-        <span className="text-sm text-gray-300">{fileName || "选择Excel文件..."}</span>
+        <span className="text-sm text-white">{fileName || "选择Excel文件..."}</span>
       </label>
     </div>
   );

@@ -109,14 +109,14 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-full flex flex-col bg-gray-900 text-white selection:bg-purple-500 selection:text-white">
-      <header className="text-center py-6 px-4 bg-gray-800 shadow-lg sticky top-0 z-40">
+      {/* <header className="text-center py-6 px-4 bg-gray-800 shadow-lg sticky top-0 z-40">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
             {appTitle} <SparklesIcon className="inline-block w-10 h-10 mb-2"/>
           </span>
         </h1>
         <p className="mt-2 text-lg text-gray-400">{appSubtitle}</p>
-      </header>
+      </header> */}
 
       <div className="flex-grow flex flex-col">
         {currentPage === 'settings' && (
@@ -191,9 +191,9 @@ const App: React.FC = () => {
         <WinnerDisplay winners={winners} />
       </Modal>
       
-      <footer className="text-center py-6 border-t border-gray-700 bg-gray-800">
+      {/* <footer className="text-center py-6 border-t border-gray-700 bg-gray-800">
         <p className="text-sm text-gray-500">{appTitle} &copy; {new Date().getFullYear()}</p>
-      </footer>
+      </footer> */}
     </div>
   );
 };
