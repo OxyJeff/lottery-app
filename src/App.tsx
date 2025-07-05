@@ -4,7 +4,6 @@ import SettingsPage from './components/SettingsPage';
 import LotteryPage from './components/LotteryPage';
 import Modal from './components/Modal';
 import WinnerDisplay from './components/WinnerDisplay';
-import { SparklesIcon } from './components/icons';
 import type { Prize, WinnerRecord } from './types';
 
 export type PageView = 'settings' | 'lottery';
